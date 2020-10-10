@@ -1,9 +1,19 @@
 const detectClient = message => {
-  const isAppleIos = message.includes("--Apple-Mail-");
+  return new Promise((resolve, reject) => {
+    try {
+      let client = null;
 
-  if (isAppleIos) {
-    return "Apple, Ios";
-  }
+      const appleMail = "--Apple-Mail-";
+
+      if (message.includes(appleMail)) {
+        client = "apple-mail";
+      };
+      
+      resolve({ client });
+    } catch(error) {
+      reject({ error });
+    }
+  });
 }
 
 module.exports = { detectClient }
