@@ -18,7 +18,7 @@ const detectClient = message => {
   });
 }
 
-const parseBody = message => {
+const parseBody = (boundary, message) => {
   return new Promise(async (resolve, reject) => {
     try {
       let parsedBody = null;
@@ -27,7 +27,7 @@ const parseBody = message => {
 
       switch (client) {
         case "apple-mail":
-          result = await appleMail.parse(message);
+          result = await appleMail.parse(boundary, message);
           const { status, data } = result;
           if (status !== 200)
             {
