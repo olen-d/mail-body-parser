@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/olen-d/mail-body-parser/issues"
   },
-  "homepage": "https://github.com/olen-d/mail-body-parser#readme"
+  "homepage": "https://github.com/olen-d/mail-body-parser#readme",
+  "dependencies": {
+    "quoted-printable": "^1.0.1"
+  }
 }

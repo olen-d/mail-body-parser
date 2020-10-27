@@ -21,7 +21,7 @@ const detectClient = message => {
 const parseBody = (boundary, message) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let parsedBody = null;
+      let bodyParts = null;
 
       const { client } = await detectClient(message);
 
@@ -33,7 +33,8 @@ const parseBody = (boundary, message) => {
             {
               // Error
             } else {
-              parsedBody = data;
+              // Return the multi-part body
+              bodyParts = data;
               
             }
           break;
@@ -41,7 +42,7 @@ const parseBody = (boundary, message) => {
           // Use the generic parser
           break;
       }
-      resolve({ parsedBody });
+      resolve({ bodyParts });
     } catch(error) {
       reject({ error });
     }
