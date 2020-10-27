@@ -1,8 +1,13 @@
+const quotedPrintable = require("quoted-printable");
+const utf8 = require("utf8");
+
 const parse = (boundary, message) => {
   return new Promise((resolve, reject) => {
     try {
 
       // Get the starting positions of each body part
+      // Apple Mail auto-generates a multi-part/alternative and a boundary, however this may change in the future
+      // TODO: If there is no boundary, don't run the loop and just forward the body
       const boundaryIndices = [];
       if (boundary) {
 
@@ -33,10 +38,16 @@ const parse = (boundary, message) => {
         const body = bodyPart.slice(headerIndex + 4);
 
         if (bodyPart.includes("text/plain")) {
-          bodyParts.text = body;
+          let decoded = null;
+
+          if (bodyPart.includes("Content-Transfer-Encoding: quoted-printable")) {
+            decoded = utf8.decode(quotedPrintable.decode(body));
+          } 
+          bodyParts.text = decoded;
         }
         if (bodyPart.includes("text/html")) {
-          bodyParts.html = body;
+            decoded = utf8.decode(quotedPrintable.decode(body));
+          bodyParts.html = decoded;
         }
       }
 
