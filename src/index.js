@@ -1,4 +1,5 @@
 const appleMail = require("./apple-mail");
+const generic = require("./generic");
 
 const detectClient = message => {
   return new Promise((resolve, reject) => {
@@ -26,7 +27,7 @@ const parseBody = (boundary, message) => {
       const { client } = await detectClient(message);
 
       switch (client) {
-        case "apple-mail":
+        case "apple-mail": {
           result = await appleMail.parse(boundary, message);
           const { status, data } = result;
           if (status !== 200)
@@ -38,9 +39,20 @@ const parseBody = (boundary, message) => {
               
             }
           break;
-        default:
+        }
+
+        default: {
           // Use the generic parser
+          result = await generic.parse(boundary, message);
+          const { status, data } = result;
+
+          if (status !== 200) {
+            // Error
+          } else {
+            bodyParts = data;
+          }
           break;
+        }
       }
       resolve({ bodyParts });
     } catch(error) {
