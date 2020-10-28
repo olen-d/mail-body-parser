@@ -19,16 +19,17 @@ const parse = (boundary, message) => {
         const body = headerIndex === -1 ? message : message.slice(headerIndex + 4);
 
         // Check for Content-types
-        let contentType = null;
-
-        if (message.includes("text/plain"))
+        if (message.includes("Content-type:")) {
+          if (message.includes("Content-type: text/plain"))
           {
             bodyParts.text = body;
-          } else {
-            // No content type, assume ASCII
-            bodyParts.text = body;
-          }
-        // bodyParts.message = message;
+          } else if (message.includes("Content-type: text/html")) {
+            bodyParts.html = body;
+          } else {}
+        } else {
+          // No content type, assume plain text and US ASCII
+          bodyParts.text = body;
+        }
       }
       resolve({ status: 200, data: bodyParts });
     } catch(error) {
