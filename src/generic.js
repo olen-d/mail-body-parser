@@ -21,7 +21,7 @@ const parse = (boundary, message) => {
             if (bodyPart.includes("Content-Transfer-Encoding: quoted-printable")) {
               decoded = utf8.decode(quotedPrintable.decode(body));
             } 
-            bodyParts.text = decoded;
+            bodyParts.text = decoded ? decoded : body;
           }
           if (bodyPart.includes("text/html")) {
             let decoded = false;
@@ -29,11 +29,11 @@ const parse = (boundary, message) => {
             if (bodyPart.includes("Content-Transfer-Encoding: quoted-printable")) {
               decoded = utf8.decode(quotedPrintable.decode(body));
             }
-            bodyParts.html = decoded;
+            bodyParts.html = decoded ? decoded : body;
           }
         } else {
           // No content type, assume plain text and US ASCII
-          decoded = utf8.decode(quotedPrintable(bodyPart)); // TODO: Update in the future to get quoted-printable from the headers
+          decoded = utf8.decode(quotedPrintable.decode(message)); // TODO: Update in the future to get quoted-printable from the headers
           bodyParts.text = decoded;
         }
       }
