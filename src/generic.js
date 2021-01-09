@@ -12,7 +12,7 @@ const processBodyPart = bodyPart => {
   const newBodyParts = {};
 
   // Look for a content-type field in the body part
-  reContentType = /content-type:/gi;
+  const reContentType = /content-type:/gi;
   if (reContentType.test(bodyPart)) {
     // Get just the body without the header information
     // As per the specification, headers are followed by two CRLFs
@@ -37,7 +37,7 @@ const processBodyPart = bodyPart => {
     }
   } else {
     // No content type, assume plain text and US ASCII
-    decoded = utf8.decode(quotedPrintable.decode(bodyPart)); // TODO: Update in the future to get quoted-printable from the headers
+    const decoded = utf8.decode(quotedPrintable.decode(bodyPart)); // TODO: Update in the future to get quoted-printable from the headers
     newBodyParts.text = decoded;
   }
   return newBodyParts;
