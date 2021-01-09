@@ -9,24 +9,18 @@ const generic = require("./generic");
  * @returns {Promise} Promise object returns body parts
  */
 
-const parseBody = (boundary, message) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Use the generic parser
-      // As noted abover, the generic parser currently handles everything, but in the future client-specific code could be inserted here
-      result = await generic.parse(boundary, message);
-      const { status, data } = result;
+const parseBody = async (boundary, message) => {
+  try {
+    // Use the generic parser
+    // As noted abover, the generic parser currently handles everything, but in the future client-specific code could be inserted here
+    const result = await generic.parse(boundary, message);
+    const { status, data } = result;
 
-      if (status !== 200) {
-        bodyParts = { error: "Failed to parse email message." };
-      } else {
-        bodyParts = data;
-      }
-      resolve({ bodyParts });
-    } catch(error) {
-      reject({ error });
-    }
-  });
+    const bodyParts = status !== 200 ? { error: "Failed to parse email message." } : data;
+    return bodyParts;
+  } catch(error) {
+    return({ error });
+  }
 }
 
 module.exports = { parseBody }
