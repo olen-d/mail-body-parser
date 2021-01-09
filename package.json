@@ -18,5 +18,8 @@
   "homepage": "https://github.com/olen-d/mail-body-parser#readme",
   "dependencies": {
     "quoted-printable": "^1.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.17.0"
   }
 }
