@@ -1,6 +1,22 @@
 const quotedPrintable = require("quoted-printable");
 const utf8 = require("utf8");
 
+const detectContentType = bodyPart => {
+  const reContentType = /content-type:/gi;
+  if (reContentType.test(bodyPart)) {
+    if (bodyPart.includes("text/plain")) {
+      return "text"
+    }
+    if (bodyPart.includes("text/html")) {
+      return "html";
+    } else {
+      return false;
+    }
+  } else {
+    return "text";
+  }
+}
+
 /**
  * Determines if a body part is text/plain or text/html and if it's encoded with quoted printable and decodes it
  * @author Olen Daelhousen <mailbodyparser@olen.dev>
@@ -93,4 +109,4 @@ const parse = (boundary, message) => {
   });
 }
 
-module.exports = { parse };
+module.exports = { detectContentType, parse, processBodyPart };
