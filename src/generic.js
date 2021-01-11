@@ -1,6 +1,13 @@
 const quotedPrintable = require("quoted-printable");
 const utf8 = require("utf8");
 
+/**
+ * Detects if a body part is text/html or text/plain and defaults to text/plain if no content type is specified
+ * @author Olen Daelhousen <mailbodyparser@olen.dev>
+ * @param {string} bodyPart - an individual body part of a multi-part message, or a single message
+ * @returns {string} false if the body part includes an unrecognized Content-Type, html, or text 
+ */
+
 const detectContentType = bodyPart => {
   const reContentType = /content-type:/gi;
   if (reContentType.test(bodyPart)) {
