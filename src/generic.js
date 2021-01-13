@@ -2,6 +2,34 @@ const quotedPrintable = require("quoted-printable");
 const utf8 = require("utf8");
 
 /**
+ * Detects the encoding of the bodd and decodes as appropriate
+ * @author Olen Daelhousen <mailbodyparser@olen.dev>
+ * @param {string} header - the header included in the body part or from the email message 
+ * @param {string} body - the body of the email message without headers
+ * @returns {string} - throws an error if the content transfer encoding is unrecognized, the decoded body of the email
+ */
+
+const decodeBody = (header, body) => {
+  if (header) {
+    const reContentTransferEncoding = /content-transfer-encoding:/gi;
+    if (reContentTransferEncoding.test(header)) {
+      if(header.includes("quoted-printable")) {
+        const decoded = utf8.decode(quotedPrintable.decode(body));
+        return decoded;
+      } else {
+        throw new Error("Content-Transfer-Encoding not recognized. Failed to decode body.");
+      }
+    } else {
+      // No content transfer encoding specified, default to US-ASCII, as per RFC 2046
+      return body;
+    }
+  } else {
+    // No header information, default to US-ASCII, as per RFC 2046
+    return body;
+  }
+}
+
+/**
  * Detects if a body part is text/html or text/plain and defaults to text/plain if no content type is specified
  * @author Olen Daelhousen <mailbodyparser@olen.dev>
  * @param {string} bodyPart - an individual body part of a multi-part message, or a single message
@@ -20,6 +48,7 @@ const detectContentType = bodyPart => {
       return false;
     }
   } else {
+    // No content type specified, default to text/plain, as per RFC 2046
     return "text";
   }
 }
@@ -116,4 +145,4 @@ const parse = (boundary, message) => {
   });
 }
 
-module.exports = { detectContentType, parse, processBodyPart };
+module.exports = { decodeBody, detectContentType, parse, processBodyPart };
