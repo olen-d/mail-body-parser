@@ -32,17 +32,17 @@ const decodeBody = (header, body) => {
 /**
  * Detects if a body part is text/html or text/plain and defaults to text/plain if no content type is specified
  * @author Olen Daelhousen <mailbodyparser@olen.dev>
- * @param {string} bodyPart - an individual body part of a multi-part message, or a single message
+ * @param {string} header - the header included an individual body part of a multi-part message, or from a single message
  * @returns {string} false if the body part includes an unrecognized Content-Type, html, or text 
  */
 
-const detectContentType = bodyPart => {
+const detectContentType = header => {
   const reContentType = /content-type:/gi;
-  if (reContentType.test(bodyPart)) {
-    if (bodyPart.includes("text/plain")) {
+  if (reContentType.test(header)) {
+    if (header.includes("text/plain")) {
       return "text"
     }
-    if (bodyPart.includes("text/html")) {
+    if (header.includes("text/html")) {
       return "html";
     } else {
       return false;
@@ -54,56 +54,15 @@ const detectContentType = bodyPart => {
 }
 
 /**
- * Determines if a body part is text/plain or text/html and if it's encoded with quoted printable and decodes it
- * @author Olen Daelhousen <mailbodyparser@olen.dev>
- * @param {string} bodyPart - an individual body part of a multi-part message, or a single message
- * @returns {object} adds text and html properties to the newBodyParts object along with the text or html message
- */
-
-const processBodyPart = bodyPart => {
-  const newBodyParts = {};
-
-  // Look for a content-type field in the body part
-  const reContentType = /content-type:/gi;
-  if (reContentType.test(bodyPart)) {
-    // Get just the body without the header information
-    // As per the specification, headers are followed by two CRLFs
-    const headerIndex = bodyPart.indexOf("\r\n\r\n");
-    const body = bodyPart.slice(headerIndex + 4);
-
-    if (bodyPart.includes("text/plain")) {
-      let decoded = false;
-
-      if (bodyPart.includes("Content-Transfer-Encoding: quoted-printable")) {
-        decoded = utf8.decode(quotedPrintable.decode(body));
-      } 
-      newBodyParts.text = decoded ? decoded : body;
-    }
-    if (bodyPart.includes("text/html")) {
-      let decoded = false;
-
-      if (bodyPart.includes("Content-Transfer-Encoding: quoted-printable")) {
-        decoded = utf8.decode(quotedPrintable.decode(body));
-      }
-      newBodyParts.html = decoded ? decoded : body;
-    }
-  } else {
-    // No content type, assume plain text and US ASCII
-    const decoded = utf8.decode(quotedPrintable.decode(bodyPart)); // TODO: Update in the future to get quoted-printable from the headers
-    newBodyParts.text = decoded;
-  }
-  return newBodyParts;
-}
-
-/**
  * Loops through the parts of a multipart internet message and decodes them if necessary
  * @author Olen Daelhousen <mailbodyparser@olen.dev>
  * @param {boolean, string} boundary - boolean (false) if a boundary does not exist, string representing the boundary if it does
+ * @param {boolean, string} header - boolean (false) if a header is not provided, string representing the header of a message if it does
  * @param {string} message - an internet message body
- * @returns {object} Promise object returns body parts
+ * @returns {object} Promise object returns text and html properties with the associated text and html messages 
  */
 
-const parse = (boundary, message) => {
+const parse = (boundary, header, message) => {
   return new Promise((resolve, reject) => {
     try {
       const bodyParts = {};
@@ -122,20 +81,39 @@ const parse = (boundary, message) => {
         }
 
         const boundaryLen = boundary.length;
-        const boundaryIndicesLen = boundaryIndices.length - 1; // The last value in boundaryIndices should always be -1
+        const totalBodyParts = boundaryIndices.length - 2; // There is always one more boundary than body parts and the last value in boundaryIndices should always be -1
 
         let j = 0;
-        for (let i =0; i < boundaryIndicesLen; i++) {
+        for (let i =0; i < totalBodyParts; i++) {
           j = i + 1;
 
           // Get the body part, minus the boundaries
-          const bodyPart = message.slice(boundaryIndices[i] + boundaryLen, boundaryIndices[j]);
-          const newBodyParts = processBodyPart(bodyPart);
-          Object.assign(bodyParts, newBodyParts);
+          const bodyPart = message.slice(boundaryIndices[i] + boundaryLen, boundaryIndices[j] - 4); // - 4 to account for the CRLF and -- the boundary starts with
+          const reContentType = /content-type:/gi;
+
+          if (reContentType.test(bodyPart)) {
+            // Get just the body without the header information
+            // As per the specification, headers are followed by two CRLFs
+            const headerIndex = bodyPart.indexOf("\r\n\r\n");
+            const bpHeader = bodyPart.slice(0, headerIndex);
+            const body = bodyPart.slice(headerIndex + 4);
+
+            const contentType = detectContentType(bpHeader);
+            const decodedBody = decodeBody(bpHeader, body);
+            const newBodyParts = { [contentType]: decodedBody }
+
+            Object.assign(bodyParts, newBodyParts);
+          } else {
+            // No header.
+            // TODO: Implement the no header procedure.
+          }
         }
       } else {
-        // If a boundary is not provided assume plain text and process the message
-        const newBodyParts = processBodyPart(message);
+        // If a boundary is not provided, this is a single message
+        // Header comes from calling function
+        const contentType = detectContentType(header);
+        const decodedBody = decodeBody(header, message);
+        const newBodyParts = { [contentType]: decodedBody };
         Object.assign(bodyParts, newBodyParts);
       }
       resolve({ status: 200, message: "ok", data: bodyParts });
@@ -145,4 +123,4 @@ const parse = (boundary, message) => {
   });
 }
 
-module.exports = { decodeBody, detectContentType, parse, processBodyPart };
+module.exports = { decodeBody, detectContentType, parse };
