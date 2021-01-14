@@ -1,4 +1,4 @@
-const { decodeBody, detectContentType, processBodyPart } = require("../generic");
+const { decodeBody, detectContentType, parse } = require("../generic");
 
 describe("Testing decodeBody", () => { 
   test("should decode content-transfer-encoding: quoted-printable", () => {
@@ -38,7 +38,14 @@ describe("Testing detectContentType", () => {
   });
 });
 
-// processBodyPart tests
-test("should return an object with text and html properties and the text or html message", () => {
-  expect(processBodyPart("This is a test message.")).toEqual({text: "This is a test message."});
+describe("Testing parse", () => {
+  test("should return an object with a text property and the value of the text", async () => {
+    const result = await parse(false, "Content-Type: text/plain\r\nContent-Transfer-Encoding: quoted-printable", "=5BTesting=5D This is a test message.");
+    expect(result).toEqual({"data": { "text": "[Testing] This is a test message." }, "message": "ok", "status": 200 });
+  });
+
+  test("should return an object with text and html properties and the text and html values", async () => {
+    const result = await parse("simpleboundary",false,"\r\n--simpleboundary\r\nContent-Type: text/plain\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n=5BTesting=5D This is a test message.\r\n--simpleboundary\r\nContent-Type: text/html\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n=3Chtml=3E=5BTesting=5D This is a test message.=3C/html=3E\r\n--simpleboundary--");
+    expect(result).toEqual({"data": { "html": "<html>[Testing] This is a test message.</html>", "text": "[Testing] This is a test message."}, "message": "ok", "status": 200 })
+  });
 });
