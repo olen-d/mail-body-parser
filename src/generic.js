@@ -34,7 +34,7 @@ const decodeBody = (header, body) => {
  * Detects if a body part is text/html or text/plain and defaults to text/plain if no content type is specified
  * @author Olen Daelhousen <mailbodyparser@olen.dev>
  * @param {string} header - the header included an individual body part of a multi-part message, or from a single message
- * @returns {string} false if the body part includes an unrecognized Content-Type, html, or text 
+ * @returns {string} throws an error if the content type is unrecognized, html, or text 
  */
 
 const detectContentType = header => {
@@ -46,7 +46,7 @@ const detectContentType = header => {
     if (header.includes("text/html")) {
       return "html";
     } else {
-      return false;
+      throw new Error("Content-Type not recognized or invalid. Failed to detect content type.");
     }
   } else {
     // No content type specified, default to text/plain, as per RFC 2046
