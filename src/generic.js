@@ -25,6 +25,7 @@ const decodeBody = (header, body) => {
     }
   } else {
     // No header information, default to US-ASCII, as per RFC 2046
+    // TODO: Autodetect quoted-printable to make this more robust in the future
     return body;
   }
 }
@@ -49,6 +50,7 @@ const detectContentType = header => {
     }
   } else {
     // No content type specified, default to text/plain, as per RFC 2046
+    // TODO: Autodetect HTML and/or enriched to make this more robust
     return "text";
   }
 }
@@ -88,7 +90,7 @@ const parse = (boundary, header, message) => {
           j = i + 1;
 
           // Get the body part, minus the boundaries
-          const bodyPart = message.slice(boundaryIndices[i] + boundaryLen, boundaryIndices[j] - 4); // - 4 to account for the CRLF and -- the boundary starts with
+          const bodyPart = message.slice(boundaryIndices[i] + boundaryLen, boundaryIndices[j] - 4); // -4 to account for the CRLF and -- the boundary starts with
           const reContentType = /content-type:/gi;
 
           if (reContentType.test(bodyPart)) {
@@ -104,8 +106,13 @@ const parse = (boundary, header, message) => {
 
             Object.assign(bodyParts, newBodyParts);
           } else {
-            // No header.
-            // TODO: Implement the no header procedure.
+            // No content-type in header
+            // Assume there is no header because content-type is not specified. 
+            const contentType = detectContentType("none"); // Will default to text
+            const decodedBody = decodeBody(false, bodyPart); // Will return text
+            const newBodyParts = { [contentType]: decodedBody };
+
+            Object.assign(bodyParts, newBodyParts);
           }
         }
       } else {
