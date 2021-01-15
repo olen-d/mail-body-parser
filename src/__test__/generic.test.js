@@ -43,6 +43,11 @@ describe("Testing parse", () => {
     const result = await parse(false, "Content-Type: text/plain\r\nContent-Transfer-Encoding: quoted-printable", "=5BTesting=5D This is a test message.");
     expect(result).toEqual({"data": { "text": "[Testing] This is a test message." }, "message": "ok", "status": 200 });
   });
+  // Note: the following returns the html message, since the text property is overwritten. This is expected and will be fixed in the future when HTML autodetection is implemented.
+  test("should return an object with a text property and the value of the text should not be decoded", async () => {
+    const result = await parse("simpleboundary",false,"\r\n--simpleboundary\r\n\r\n=5BTesting=5D This is a test message.\r\n--simpleboundary\r\n\r\n=3Chtml=3E=5BTesting=5D This is a test message.=3C/html=3E\r\n--simpleboundary--");
+    expect(result).toEqual({"data": { "text": "\r\n\r\n=3Chtml=3E=5BTesting=5D This is a test message.=3C/html=3E"}, "message": "ok", "status": 200});
+  });
 
   test("should return an object with text and html properties and the text and html values", async () => {
     const result = await parse("simpleboundary",false,"\r\n--simpleboundary\r\nContent-Type: text/plain\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n=5BTesting=5D This is a test message.\r\n--simpleboundary\r\nContent-Type: text/html\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n=3Chtml=3E=5BTesting=5D This is a test message.=3C/html=3E\r\n--simpleboundary--");
