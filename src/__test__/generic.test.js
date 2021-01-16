@@ -29,8 +29,10 @@ describe("Testing detectContentType", () => {
     expect(detectContentType("Content-Type: text/plain")).toBe("text");
   });
   
-  test("should return false for an unrcognized content-type:", () => {
-    expect(detectContentType("Content-Type: text/enriched")).toBe(false);
+  test("should throw an error for an unrecognized content-type:", () => {
+    expect(() => {
+      detectContentType("Content-Type: text/enriched");
+    }).toThrow("Content-Type not recognized or invalid. Failed to detect content type.");
   });
   
   test("should return text if no content-type specified", () => {
