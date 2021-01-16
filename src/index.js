@@ -5,15 +5,16 @@ const generic = require("./generic");
  * Splits out individual parts of messages based on the email client the message was sent from
  * @author Olen Daelhousen <mailbodyparser@olen.dev>
  * @param {string} boundary - the multi-part boundary delimiter
+ * @param {string} header - the header of the email message
  * @param {string} message - the body of the email message
  * @returns {Promise} Promise object returns body parts
  */
 
-const parseBody = async (boundary, message) => {
+const parseBody = async (boundary, header, message) => {
   try {
     // Use the generic parser
-    // As noted abover, the generic parser currently handles everything, but in the future client-specific code could be inserted here
-    const result = await generic.parse(boundary, message);
+    // As noted above, the generic parser currently handles everything, but in the future client-specific code could be inserted here
+    const result = await generic.parse(boundary, header, message);
     const { status, data } = result;
 
     const bodyParts = status !== 200 ? { error: "Failed to parse email message." } : data;
