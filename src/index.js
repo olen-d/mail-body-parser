@@ -15,12 +15,9 @@ const parseBody = async (boundary, header, message) => {
     // Use the generic parser
     // As noted above, the generic parser currently handles everything, but in the future client-specific code could be inserted here
     const result = await generic.parse(boundary, header, message);
-    const { status, data } = result;
-
-    const bodyParts = status !== 200 ? { error: "Failed to parse email message." } : data;
-    return bodyParts;
+    return result;
   } catch(error) {
-    return({ error });
+    return(error);
   }
 }
 
