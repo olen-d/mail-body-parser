@@ -59,7 +59,7 @@ const detectContentType = header => {
  * Loops through the parts of a multipart internet message and decodes them if necessary
  * @author Olen Daelhousen <mailbodyparser@olen.dev>
  * @param {boolean, string} boundary - boolean (false) if a boundary does not exist, string representing the boundary if it does
- * @param {boolean, string} header - boolean (false) if a header is not provided, string representing the header of a message if it does
+ * @param {string} header - null if a header is not provided, string representing the header of a message if it does
  * @param {string} message - an internet message body
  * @returns {object} Promise object returns text and html properties with the associated text and html messages 
  */
@@ -123,9 +123,9 @@ const parse = (boundary, header, message) => {
         const newBodyParts = { [contentType]: decodedBody };
         Object.assign(bodyParts, newBodyParts);
       }
-      resolve({ status: 200, message: "ok", data: bodyParts });
+      resolve({ ...bodyParts });
     } catch(error) {
-      reject({ status: 500, message: "Internal Server Error", error });
+      reject(new Error(error));
     }
   });
 }
